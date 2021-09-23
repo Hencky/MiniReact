@@ -5,6 +5,11 @@
  * @param {*} children 子元素
  */
 function createElement(type, config, children) {
+  if (config) {
+    delete config._source;
+    delete config._self;
+  }
+  
   const props = { ...config };
 
   if (arguments.length > 3) {

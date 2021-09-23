@@ -8,7 +8,7 @@
  * @param {*} container 插入容器
  */
 function render(vdom, container) {
-  const dom = createDom(vdom);
+  const dom = createDOM(vdom);
   container.appendChild(dom);
 }
 
@@ -16,7 +16,7 @@ function render(vdom, container) {
  * 把虚拟dom变成真实dom
  * @param {*} vdom 虚拟dom
  */
-function createDom(vdom) {
+function createDOM(vdom) {
   // 如果vdom是数字或者字符串，直接返回真实的文本节点
   if (typeof vdom === 'string' || typeof vdom === 'number') {
     return document.createTextNode(vdom);
@@ -24,13 +24,20 @@ function createDom(vdom) {
 
   // 如果不是数字 字符串，就是一个虚拟DOM对象
   const { type, props } = vdom;
-  const dom = document.createElement(type);
+  let dom;
+
+  if (typeof type === 'function') {
+    // 自定义的函数组件
+    dom = mountFunctionComponent(vdom);
+  } else {
+    dom = document.createElement(type);
+  }
 
   /** 使用虚拟DOM的属性，更新刚创建出来的真实dom属性 */
   updateProps(dom, props);
 
   /** 处理children */
-  if (typeof props.chilren === 'string' || typeof props.children === 'number') {
+  if (typeof props.children === 'string' || typeof props.children === 'number') {
     dom.textContent = props.children;
     // 唯一子元素为虚拟DOM元素
   } else if (typeof props.children === 'object' && props.children.type) {
@@ -42,7 +49,8 @@ function createDom(vdom) {
   }
 
   // 把真实DOM作为一个dom属性放到虚拟dom，为以后更新做准备
-  vdom.dom = dom;
+  // vdom.dom = dom;
+
   return dom;
 }
 
@@ -77,8 +85,18 @@ function updateProps(dom, newProps) {
  */
 function reconcileChildren(childrenVdom, parentDOM) {
   childrenVdom.forEach((vdomItem) => {
-    render(vdomItem, parentDOM );
+    render(vdomItem, parentDOM);
   });
+}
+
+/**
+ * 把一个类型为自定义函数组件的虚拟DOM转换为真实DOM并返回
+ * @param {*} vdom
+ */
+function mountFunctionComponent(vdom) {
+  const { type: FunctionComponent, props } = vdom;
+  const renderVdom = FunctionComponent(props);
+  return createDOM(renderVdom);
 }
 
 const ReactDOM = {

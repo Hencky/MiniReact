@@ -18,15 +18,25 @@ const element2 = React.createElement(
   {
     id: 'title',
     className: 'title',
-    style: { fontSize: '16px' }
+    style: { fontSize: '16px' },
   },
   'hello',
   'world',
-  React.createElement('span', { style: { color: 'red '} }, '!')
+  React.createElement('span', { style: { color: 'red ' } }, '!')
 );
 
 console.log('element1', JSON.stringify(element1, null, 2));
 console.log('element2', element2);
 
+function FunctionComponent(props) {
+  return element2;
+}
+
+const element3 = React.createElement(FunctionComponent, null, <span>abc</span>);
+
+console.log('element3', element3);
+
 // render方法负责把虚拟DOM变成真实DOM插入到容器里
-ReactDOM.render(element2, document.getElementById('root'));
+// ReactDOM.render(element2, document.getElementById('root'));
+
+ReactDOM.render(element3, document.getElementById('root'));
