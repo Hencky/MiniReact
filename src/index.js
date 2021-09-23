@@ -28,15 +28,56 @@ const element2 = React.createElement(
 console.log('element1', JSON.stringify(element1, null, 2));
 console.log('element2', element2);
 
+// ------ 函数组件 ------
 function FunctionComponent(props) {
-  return element2;
+  return (
+    <h1 id="title" className="title" style={{ color: 'red' }}>
+      {props.title}
+      <span style={{ color: props.color }}>!</span>
+    </h1>
+  );
 }
 
-const element3 = React.createElement(FunctionComponent, null, <span>abc</span>);
+const element3 = React.createElement(
+  FunctionComponent,
+  {
+    title: 'hello world',
+    color: 'green',
+  },
+  <span style={{ color: 'yellow' }}>aaa</span>
+);
 
 console.log('element3', element3);
 
+// ----- 类组件 -----
+
+/**
+ * 类组件和类组件的更新
+ * 可以在构造函数里，并且只能在构造函数中给this.state赋值
+ * 定义状态对象
+ * 属性对象  父组件给的，不能改变，是只读的
+ */
+class Counter extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = { number: 0 };
+  }
+
+  handleClick = () => {
+    this.setState({ number: this.state.number + 1 });
+  };
+
+  render() {
+    return (
+      <div>
+        <p>{this.state.number}</p>
+        <button onClick={this.handleClick}>+</button>
+      </div>
+    );
+  }
+}
+
 // render方法负责把虚拟DOM变成真实DOM插入到容器里
 // ReactDOM.render(element2, document.getElementById('root'));
-
-ReactDOM.render(element3, document.getElementById('root'));
+ReactDOM.render(<Counter />, document.getElementById('root'));

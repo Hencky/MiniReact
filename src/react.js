@@ -1,3 +1,5 @@
+import Component from './Component';
+
 /**
  *
  * @param {string} type 元素类型
@@ -9,7 +11,7 @@ function createElement(type, config, children) {
     delete config._source;
     delete config._self;
   }
-  
+
   const props = { ...config };
 
   if (arguments.length > 3) {
@@ -25,6 +27,7 @@ function createElement(type, config, children) {
 
 const React = {
   createElement,
+  Component,
 };
 
 export default React;

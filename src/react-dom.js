@@ -16,7 +16,7 @@ function render(vdom, container) {
  * 把虚拟dom变成真实dom
  * @param {*} vdom 虚拟dom
  */
-function createDOM(vdom) {
+export function createDOM(vdom) {
   // 如果vdom是数字或者字符串，直接返回真实的文本节点
   if (typeof vdom === 'string' || typeof vdom === 'number') {
     return document.createTextNode(vdom);
@@ -27,8 +27,13 @@ function createDOM(vdom) {
   let dom;
 
   if (typeof type === 'function') {
-    // 自定义的函数组件
-    dom = mountFunctionComponent(vdom);
+    // 类函数
+    if (type.isReactComponent) {
+      return mountClassComponent(vdom);
+      // 自定义的函数组件
+    } else {
+      dom = mountFunctionComponent(vdom);
+    }
   } else {
     dom = document.createElement(type);
   }
@@ -37,7 +42,10 @@ function createDOM(vdom) {
   updateProps(dom, props);
 
   /** 处理children */
-  if (typeof props.children === 'string' || typeof props.children === 'number') {
+  if (
+    typeof props.children === 'string' ||
+    typeof props.children === 'number'
+  ) {
     dom.textContent = props.children;
     // 唯一子元素为虚拟DOM元素
   } else if (typeof props.children === 'object' && props.children.type) {
@@ -61,19 +69,22 @@ function createDOM(vdom) {
  * @param {*} newProps 新属性对象
  */
 function updateProps(dom, newProps) {
-  Object.keys(newProps).forEach((propName) => {
+  Object.keys(newProps).forEach((key) => {
     // children单独处理
-    if (propName === 'children') {
+    if (key === 'children') {
       return;
     }
 
-    if (propName === 'style') {
+    if (key === 'style') {
       const styleObj = newProps.style;
       Object.keys(styleObj).forEach((attr) => {
         dom.style[attr] = styleObj[attr];
       });
+    } else if (key.startsWith('on')) {
+      // 给真实dom加事件
+      dom[key.toLocaleLowerCase()] = newProps[key];
     } else {
-      dom[propName] = newProps[propName];
+      dom[key] = newProps[key];
     }
   });
 }
@@ -97,6 +108,20 @@ function mountFunctionComponent(vdom) {
   const { type: FunctionComponent, props } = vdom;
   const renderVdom = FunctionComponent(props);
   return createDOM(renderVdom);
+}
+
+function mountClassComponent(vdom) {
+  // 解构类的定义和类的属性对象
+  const { type, props } = vdom;
+  // 创建类实例
+  const classInstance = new type(props);
+  // 调用实例的render方法返回要渲染的虚拟DOM对象
+  const renderVdom = classInstance.render();
+  // 根据虚拟DOM对象创建真实DOM对象
+  const dom = createDOM(renderVdom);
+  // 为以后类组件更新，把真实DOM挂在到类的实例上
+  classInstance.dom = dom;
+  return dom;
 }
 
 const ReactDOM = {
