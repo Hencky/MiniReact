@@ -1,0 +1,35 @@
+{
+  "name": "react-go",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "cra-template": "1.1.2",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-scripts": "4.0.3"
+  },
+  "scripts": {
+    "start": "set DISABLED_NEW_JSX_TRANSFORM=true&react-scripts start",
+    "build": "set DISABLED_NEW_JSX_TRANSFORM=true&react-scripts build",
+    "test": "set DISABLED_NEW_JSX_TRANSFORM=true&react-scripts test",
+    "eject": "set DISABLED_NEW_JSX_TRANSFORM=true&react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
