@@ -42,7 +42,7 @@ function createDom(vdom) {
   }
 
   // 把真实DOM作为一个dom属性放到虚拟dom，为以后更新做准备
-  // vdom.dom = dom;
+  vdom.dom = dom;
   return dom;
 }
 

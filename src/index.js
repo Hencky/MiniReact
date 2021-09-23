@@ -17,13 +17,16 @@ const element2 = React.createElement(
   'h1',
   {
     id: 'title',
+    className: 'title',
+    style: { fontSize: '16px' }
   },
   'hello',
-  'world'
+  'world',
+  React.createElement('span', { style: { color: 'red '} }, '!')
 );
 
 console.log('element1', JSON.stringify(element1, null, 2));
 console.log('element2', element2);
 
 // render方法负责把虚拟DOM变成真实DOM插入到容器里
-ReactDOM.render(element1, document.getElementById('root'));
+ReactDOM.render(element2, document.getElementById('root'));
