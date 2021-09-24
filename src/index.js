@@ -25,8 +25,8 @@ const element2 = React.createElement(
   React.createElement('span', { style: { color: 'red ' } }, '!')
 );
 
-console.log('element1', JSON.stringify(element1, null, 2));
-console.log('element2', element2);
+// console.log('element1', JSON.stringify(element1, null, 2));
+// console.log('element2', element2);
 
 // ------ 函数组件 ------
 function FunctionComponent(props) {
@@ -65,14 +65,46 @@ class Counter extends React.Component {
   }
 
   handleClick = () => {
-    this.setState({ number: this.state.number + 1 });
+    this.setState(
+      (nextState) => ({ number: nextState.number + 1 }),
+      () => {
+        console.log('触发回调1', this.state.number);
+      }
+    );
+    console.log(this.state.number);
+    this.setState(
+      (nextState) => ({ number: nextState.number + 1 }),
+      () => {
+        console.log('触发回调2', this.state.number);
+      }
+    );
+    console.log(this.state.number);
+
+    Promise.resolve().then(() => {
+      console.log('promise', this.state.number);
+
+      this.setState(
+        (nextState) => ({ number: nextState.number + 1 }),
+        () => {
+          console.log('触发回调3', this.state.number);
+        }
+      );
+      console.log(this.state.number);
+      this.setState(
+        (nextState) => ({ number: nextState.number + 1 }),
+        () => {
+          console.log('触发回调4', this.state.number);
+        }
+      );
+      console.log(this.state.number);
+    });
   };
 
   render() {
     return (
       <div>
         <p>{this.state.number}</p>
-        <button onClick={this.handleClick}>+</button>
+        <button onClick={this.handleClick}><span>+</span></button>
       </div>
     );
   }

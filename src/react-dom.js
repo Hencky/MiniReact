@@ -1,3 +1,5 @@
+import { addEvent } from './event';
+
 /**
  *
  * 1. 把virtual dom变成真实dom
@@ -82,7 +84,7 @@ function updateProps(dom, newProps) {
       });
     } else if (key.startsWith('on')) {
       // 给真实dom加事件
-      dom[key.toLocaleLowerCase()] = newProps[key];
+      addEvent(dom, key.toLocaleLowerCase(), newProps[key]);
     } else {
       dom[key] = newProps[key];
     }
