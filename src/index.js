@@ -7,23 +7,23 @@ import ReactDOM from './react-dom';
  */
 
 /** jsx编译成createElement实在webpack编译的时候，也就是打包的时候执行的 */
-const element1 = (
-  <h1 id="title" className="title" style={{ color: 'red' }}>
-    hello world
-    <span style={{ color: 'green' }}>!</span>
-  </h1>
-);
-const element2 = React.createElement(
-  'h1',
-  {
-    id: 'title',
-    className: 'title',
-    style: { fontSize: '16px' },
-  },
-  'hello',
-  'world',
-  React.createElement('span', { style: { color: 'red ' } }, '!')
-);
+// const element1 = (
+//   <h1 id="title" className="title" style={{ color: 'red' }}>
+//     hello world
+//     <span style={{ color: 'green' }}>!</span>
+//   </h1>
+// );
+// const element2 = React.createElement(
+//   'h1',
+//   {
+//     id: 'title',
+//     className: 'title',
+//     style: { fontSize: '16px' },
+//   },
+//   'hello',
+//   'world',
+//   React.createElement('span', { style: { color: 'red ' } }, '!')
+// );
 
 // console.log('element1', JSON.stringify(element1, null, 2));
 // console.log('element2', element2);
@@ -38,6 +38,7 @@ function FunctionComponent(props) {
   );
 }
 
+// eslint-disable-next-line
 const element3 = React.createElement(
   FunctionComponent,
   {
@@ -47,7 +48,7 @@ const element3 = React.createElement(
   <span style={{ color: 'yellow' }}>aaa</span>
 );
 
-console.log('element3', element3);
+// console.log('element3', element3);
 
 // ----- 类组件 -----
 
@@ -57,6 +58,7 @@ console.log('element3', element3);
  * 定义状态对象
  * 属性对象  父组件给的，不能改变，是只读的
  */
+// eslint-disable-next-line
 class Counter extends React.Component {
   constructor(props) {
     super(props);
@@ -104,12 +106,96 @@ class Counter extends React.Component {
     return (
       <div>
         <p>{this.state.number}</p>
-        <button onClick={this.handleClick}><span>+</span></button>
+        <button onClick={this.handleClick}>
+          <span>+</span>
+        </button>
       </div>
     );
   }
 }
 
+// ----- 生命周期 -----
+class Counter2 extends React.Component {
+  static defaultProps = {
+    name: '计数器',
+  };
+
+  constructor(props) {
+    super(props);
+    this.state = { number: 0 };
+  }
+
+  componentWillMount() {
+    console.log('父组件 卸载');
+  }
+
+  componentDidMount() {
+    console.log('父组件 did mount');
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    console.log('父组件 shouldComponentUpdate');
+    return nextState.number % 2 === 0;
+  }
+
+  handleClick = () => {
+    this.setState({ number: this.state.number + 1 });
+  };
+
+  render() {
+    console.log('父组件 render');
+    return (
+      <div id={this.state.number}>
+        <p>{this.state.number}</p>
+        <div>
+          {this.state.number === 4 ? null : (
+            <ChildCounter count={this.state.number} />
+          )}
+        </div>
+        <button onClick={this.handleClick}>
+          <span>+</span>
+        </button>
+      </div>
+    );
+  }
+}
+
+class ChildCounter extends React.Component {
+  componentWillMount() {
+    console.log('子组件 卸载');
+  }
+
+  componentDidMount() {
+    console.log('子组件 did mount');
+  }
+
+  componentWillReceiveProps(newProps) {
+    console.log('子组件 props更新');
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    console.log('子组件 子组件是否更新');
+    return nextProps.count % 3 === 0;
+  }
+
+  componentWillUpdate() {
+    console.log('子组件  will update');
+  }
+
+  componentDidUpdate() {
+    console.log('子组件 更新完成');
+  }
+
+  componentWillUnmount() {
+    console.log('组件将要卸载');
+  }
+
+  render() {
+    console.log('子组件 render');
+    return <div id={`child-${this.props.count}`}>{this.props.count}</div>;
+  }
+}
+
 // render方法负责把虚拟DOM变成真实DOM插入到容器里
 // ReactDOM.render(element2, document.getElementById('root'));
-ReactDOM.render(<Counter />, document.getElementById('root'));
+ReactDOM.render(<Counter2 />, document.getElementById('root'));

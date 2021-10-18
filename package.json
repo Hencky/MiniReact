@@ -9,8 +9,8 @@
     "react-scripts": "4.0.3"
   },
   "scripts": {
-    "start": "set DISABLED_NEW_JSX_TRANSFORM=true & react-scripts start",
-    "build": "set DISABLED_NEW_JSX_TRANSFORM=true & react-scripts build",
+    "start": "export DISABLE_NEW_JSX_TRANSFORM=true&&react-app-rewired start",
+    "build": "set DISABLED_NEW_JSX_TRANSFORM=true & react-app-rewired build",
     "test": "set DISABLED_NEW_JSX_TRANSFORM=true & react-scripts test",
     "eject": "set DISABLED_NEW_JSX_TRANSFORM=true & react-scripts eject"
   },
@@ -31,5 +31,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "react-app-rewired": "^2.1.8"
   }
 }

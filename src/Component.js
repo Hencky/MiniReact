@@ -1,4 +1,4 @@
-import { createDOM } from './react-dom';
+import { compareTwoVdom } from './react-dom';
 
 // 更新队列
 export const updateQueue = {
@@ -7,7 +7,7 @@ export const updateQueue = {
   batchUpdate() {
     // 批量更新
     this.updaters.forEach((update) => {
-      update.updateClassComponent();
+      update.updateComponent();
     });
     this.isBatchingUpdate = false;
   },
@@ -21,25 +21,28 @@ class Updater {
   }
 
   addState(partialState, callback) {
-    this.pendingStates.push(partialState); // 更待更新的状态
+    this.pendingStates.push(partialState); // 待更新的状态
     if (typeof callback === 'function') {
       this.callbacks.push(callback); // 状态更新后的回调函数
     }
 
+    this.emitUpdate();
+  }
+
+  // 不管属性变化，还是状态变化，都会更新
+  emitUpdate(nextProps) {
+    this.nextProps = nextProps;
     // 如果当前是批量更新模式，先缓存updater
     if (updateQueue.isBatchingUpdate) {
       updateQueue.updaters.add(this);
     } else {
-      this.updateClassComponent(); // 直接更新组件
+      this.updateComponent(); // 直接更新组件
     }
   }
 
-  updateClassComponent() {
-    if (this.pendingStates.length) {
-      this.classInstance.state = this.getState(); // 计算新状态
-      this.classInstance.forceUpdate();
-      this.callbacks.forEach((cb) => cb());
-      this.callbacks.length = 0;
+  updateComponent() {
+    if (this.nextProps || this.pendingStates.length) {
+      shouldUpdate(this.classInstance, this.nextProps, this.getState());
     }
   }
 
@@ -74,8 +77,21 @@ class Component {
   }
 
   forceUpdate() {
-    const newVdom = this.render();
-    updateClassComponent(this, newVdom);
+    if (this.componentWillUpdate) {
+      this.componentWillUpdate();
+    }
+
+    const newRenderVdom = this.render();
+    const oldRenderVdom = this.oldRenderVdom;
+
+    // 深度比较新旧两个虚拟DOM
+    compareTwoVdom(oldRenderVdom.dom.parentNode, oldRenderVdom, newRenderVdom);
+
+    this.oldRenderVdom = newRenderVdom;
+
+    if (this.componentDidUpdate) {
+      this.componentDidUpdate();
+    }
   }
 
   render() {
@@ -83,11 +99,27 @@ class Component {
   }
 }
 
-function updateClassComponent(classInstance, newVdom) {
-  const oldDOM = classInstance.dom; // 取出这个类组件上次渲染出来的真实DOM
-  const newDOM = createDOM(newVdom);
-  oldDOM.parentNode.replaceChild(newDOM, oldDOM);
-  classInstance.dom = newDOM;
+/**
+ * 判断组件是否需要更新
+ * @param {*} classInstance 组件实例
+ * @param {*} nextState 新状态
+ */
+function shouldUpdate(classInstance, nextProps, nextState) {
+  if (nextProps) {
+    classInstance.props = nextProps;
+  }
+
+  classInstance.state = nextState; // 不管组件是否刷新，组件的state一定要改变
+
+  // shouldComponentUpdate返回false不继续更新
+  if (
+    classInstance.shouldComponentUpdate &&
+    !classInstance.shouldComponentUpdate(classInstance.props, nextState)
+  ) {
+    return;
+  }
+
+  classInstance.forceUpdate();
 }
 
 export default Component;
