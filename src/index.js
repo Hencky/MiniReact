@@ -29,24 +29,24 @@ import ReactDOM from './react-dom';
 // console.log('element2', element2);
 
 // ------ 函数组件 ------
-function FunctionComponent(props) {
-  return (
-    <h1 id="title" className="title" style={{ color: 'red' }}>
-      {props.title}
-      <span style={{ color: props.color }}>!</span>
-    </h1>
-  );
-}
+// function FunctionComponent(props) {
+//   return (
+//     <h1 id="title" className="title" style={{ color: 'red' }}>
+//       {props.title}
+//       <span style={{ color: props.color }}>!</span>
+//     </h1>
+//   );
+// }
 
 // eslint-disable-next-line
-const element3 = React.createElement(
-  FunctionComponent,
-  {
-    title: 'hello world',
-    color: 'green',
-  },
-  <span style={{ color: 'yellow' }}>aaa</span>
-);
+// const element3 = React.createElement(
+//   FunctionComponent,
+//   {
+//     title: 'hello world',
+//     color: 'green',
+//   },
+//   <span style={{ color: 'yellow' }}>aaa</span>
+// );
 
 // console.log('element3', element3);
 
@@ -122,24 +122,28 @@ class Counter2 extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = { number: 0 };
+    this.state = { number: 1 };
   }
 
-  componentWillMount() {
-    console.log('父组件 卸载');
-  }
+  // componentWillMount() {
+  //   console.log('父组件 卸载');
+  // }
 
-  componentDidMount() {
-    console.log('父组件 did mount');
-  }
+  // componentDidMount() {
+  //   console.log('父组件 did mount');
+  // }
 
   shouldComponentUpdate(nextProps, nextState) {
-    console.log('父组件 shouldComponentUpdate');
+    console.log('父组件 shouldComponentUpdate', this.state, nextState);
     return nextState.number % 2 === 0;
   }
 
   handleClick = () => {
     this.setState({ number: this.state.number + 1 });
+  };
+
+  handleClick2 = () => {
+    this.forceUpdate()
   };
 
   render() {
@@ -152,8 +156,16 @@ class Counter2 extends React.Component {
             <ChildCounter count={this.state.number} />
           )}
         </div>
+        <div>
+          {/* {this.state.number === 4 ? null : (
+            <ChildCount2 count={this.state.number} />
+          )} */}
+        </div>
         <button onClick={this.handleClick}>
           <span>+</span>
+        </button>
+        <button onClick={this.handleClick2}>
+          <span>更新</span>
         </button>
       </div>
     );
@@ -161,40 +173,51 @@ class Counter2 extends React.Component {
 }
 
 class ChildCounter extends React.Component {
-  componentWillMount() {
-    console.log('子组件 卸载');
+  // componentWillMount() {
+  //   console.log('子组件 卸载');
+  // }
+
+  // componentDidMount() {
+  //   console.log('子组件 did mount');
+  // }
+
+  // componentWillReceiveProps(newProps) {
+  //   console.log('子组件 props更新');
+  // }
+
+  // 静态方法不能调用this.state 避免死循环
+  static getDerivedStateFromProps(nextProps, prevState) {
+    return {
+      number: nextProps.count * 2,
+    };
   }
 
-  componentDidMount() {
-    console.log('子组件 did mount');
-  }
+  // shouldComponentUpdate(nextProps, nextState) {
+  //   console.log('子组件 子组件是否更新');
+  //   return nextProps.count % 3 === 0;
+  // }
 
-  componentWillReceiveProps(newProps) {
-    console.log('子组件 props更新');
-  }
+  // componentWillUpdate() {
+  //   console.log('子组件  will update');
+  // }
 
-  shouldComponentUpdate(nextProps, nextState) {
-    console.log('子组件 子组件是否更新');
-    return nextProps.count % 3 === 0;
-  }
+  // componentDidUpdate() {
+  //   console.log('子组件 更新完成');
+  // }
 
-  componentWillUpdate() {
-    console.log('子组件  will update');
-  }
-
-  componentDidUpdate() {
-    console.log('子组件 更新完成');
-  }
-
-  componentWillUnmount() {
-    console.log('组件将要卸载');
-  }
+  // componentWillUnmount() {
+  //   console.log('组件将要卸载');
+  // }
 
   render() {
     console.log('子组件 render');
-    return <div id={`child-${this.props.count}`}>{this.props.count}</div>;
+    return <div id={`child-${this.props.count}`}>{this.state.number}</div>;
   }
 }
+
+const ChildCount2 = (props) => {
+  return <div>{props.count}</div>;
+};
 
 // render方法负责把虚拟DOM变成真实DOM插入到容器里
 // ReactDOM.render(element2, document.getElementById('root'));

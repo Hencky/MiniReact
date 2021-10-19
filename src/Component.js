@@ -77,10 +77,20 @@ class Component {
   }
 
   forceUpdate() {
-    if (this.componentWillUpdate) {
-      this.componentWillUpdate();
+    if (Component.getDerivedStateFromProps) {
+      const partialState = Component.getDerivedStateFromProps(
+        this.props,
+        this.state
+      );
+      if (partialState) {
+        this.state = { ...this.state, ...partialState };
+      }
     }
 
+    this.updateComponent();
+  }
+
+  updateComponent() {
     const newRenderVdom = this.render();
     const oldRenderVdom = this.oldRenderVdom;
 
@@ -105,21 +115,39 @@ class Component {
  * @param {*} nextState 新状态
  */
 function shouldUpdate(classInstance, nextProps, nextState) {
-  if (nextProps) {
-    classInstance.props = nextProps;
-  }
-
-  classInstance.state = nextState; // 不管组件是否刷新，组件的state一定要改变
+  let willUpdate = true;
 
   // shouldComponentUpdate返回false不继续更新
   if (
     classInstance.shouldComponentUpdate &&
-    !classInstance.shouldComponentUpdate(classInstance.props, nextState)
+    !classInstance.shouldComponentUpdate(nextProps, nextState)
   ) {
-    return;
+    willUpdate = false;
   }
 
-  classInstance.forceUpdate();
+  if (willUpdate && classInstance.componentWillUpdate) {
+    classInstance.componentWillUpdate();
+  }
+
+  if (nextProps) {
+    classInstance.props = nextProps;
+  }
+
+  if (classInstance.constructor.getDerivedStateFromProps) {
+    const partialState = classInstance.constructor.getDerivedStateFromProps(
+      nextProps,
+      classInstance.state
+    );
+    if (partialState) {
+      nextState = { ...nextState, ...partialState };
+    }
+  }
+
+  classInstance.state = nextState; // 不管组件是否刷新，组件的state一定要改变
+
+  if (willUpdate) {
+    classInstance.updateComponent();
+  }
 }
 
 export default Component;

@@ -10,9 +10,23 @@ import { addEvent } from './event';
  * @param {*} vdom 要渲染的虚拟dom
  * @param {*} container 插入容器
  */
-function render(vdom, container) {
+function render(vdom, parentDOM, nextDOM, oldDOM) {
+  if (vdom === null) {
+    return;
+  }
+
   const dom = createDOM(vdom);
-  container.appendChild(dom);
+
+  if (oldDOM) {
+    parentDOM.replaceChild(dom, oldDOM);
+  } else {
+    if (nextDOM) {
+      parentDOM.insertBefore(dom, nextDOM);
+    } else {
+      parentDOM.appendChild(dom);
+    }
+  }
+
   dom.componentDidMount && dom.componentDidMount();
 }
 
@@ -101,9 +115,9 @@ function reconcileChildren(childrenVdom, parentDOM) {
  */
 function mountFunctionComponent(vdom) {
   const { type: FunctionComponent, props } = vdom;
-  let renderVdom = FunctionComponent(props);
-  vdom.renderVdom = renderVdom;
-  return createDOM(renderVdom);
+  let oldRenderVdom = FunctionComponent(props);
+  vdom.oldRenderVdom = oldRenderVdom;
+  return createDOM(oldRenderVdom);
 }
 
 function mountClassComponent(vdom) {
@@ -119,6 +133,16 @@ function mountClassComponent(vdom) {
     classInstance.componentWillMount();
   }
 
+  if (type.getDerivedStateFromProps) {
+    const partialState = type.getDerivedStateFromProps(
+      classInstance.props,
+      classInstance.state
+    );
+    if (partialState) {
+      classInstance.state = { ...classInstance.state, ...partialState };
+    }
+  }
+
   // 调用实例的render方法返回要渲染的虚拟DOM对象
   const renderVdom = classInstance.render();
 
@@ -129,7 +153,7 @@ function mountClassComponent(vdom) {
   const dom = createDOM(renderVdom);
 
   if (classInstance.componentDidMount) {
-    dom.componentDidMount = classInstance.componentDidMount.bind(classInstance);
+    classInstance.componentDidMount();
   }
 
   // 为以后类组件更新，把真实DOM挂在到类的实例上
@@ -163,22 +187,13 @@ export function compareTwoVdom(parentDOM, oldVdom, newVdom, nextDOM) {
 
   // 新增DOM
   if (!oldVdom && newVdom) {
-    let newDOM = createDOM(newVdom);
-    // TODO: 不能写死成appentChild
-    if (nextDOM) {
-      parentDOM.insertBefore(nextDOM, newDOM);
-    } else {
-      parentDOM.appendChild(newDOM);
-    }
+    render(newVdom, parentDOM, nextDOM);
     return;
   }
 
   // 更新 dom的type不同
   if (oldVdom && newVdom && oldVdom.type !== newVdom.type) {
-    const oldDOM = findDOM(oldVdom);
-    const newDOM = createDOM(newVdom);
-
-    parentDOM.replaceChild(newDOM, oldDOM);
+    render(newVdom, parentDOM, nextDOM, findDOM(oldVdom));
 
     oldVdom.classInstance?.componentWillUnmount?.();
 
@@ -208,7 +223,7 @@ function updateElement(oldVdom, newVdom) {
       updateClassComponent(oldVdom, newVdom);
     } else {
       // 新旧组件都是函数组件，进行函数组件更新
-      // updateFunctionComponent(oldVdom, newVdom);
+      updateFunctionComponent(oldVdom, newVdom);
     }
   }
 }
@@ -224,6 +239,15 @@ function updateClassComponent(oldVdom, newVdom) {
   classInstance.updater.emitUpdate(newVdom.props);
 }
 
+function updateFunctionComponent(oldVdom, newVdom) {
+  const parentDOM = findDOM(oldVdom).parentNode;
+  const { type, props } = newVdom;
+  const oldRenderVdom = oldVdom.oldRenderVdom;
+  const newRenderVdom = type(props);
+  compareTwoVdom(parentDOM, oldRenderVdom, newRenderVdom);
+  newVdom.oldRenderVdom = newRenderVdom;
+}
+
 /**
  *
  * @param {*} parentDOM 父dom节点
@@ -235,7 +259,10 @@ function updateChildren(parentDOM, oldVChildren, newVChildren) {
   newVChildren = Array.isArray(newVChildren) ? newVChildren : [newVChildren];
   const maxLength = Math.max(oldVChildren.length, newVChildren.length);
   for (let i = 0; i <= maxLength; i += 1) {
-    compareTwoVdom(parentDOM, oldVChildren[i], newVChildren[i]);
+    const nextDOM = oldVChildren.find(
+      (item, index) => index > i && item && item.dom
+    );
+    compareTwoVdom(parentDOM, oldVChildren[i], newVChildren[i], nextDOM?.dom);
   }
 }
 
