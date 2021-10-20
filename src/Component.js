@@ -57,6 +57,16 @@ class Updater {
       state = { ...state, ...nextState };
     });
 
+    if (this.classInstance.constructor.getDerivedStateFromProps) {
+      const partialState = this.classInstance.constructor.getDerivedStateFromProps(
+        this.nextProps,
+        this.classInstance.state
+      );
+      if (partialState) {
+        state = { ...state, ...partialState };
+      }
+    }
+
     this.pendingStates.length = 0;
     return state;
   }
@@ -131,16 +141,6 @@ function shouldUpdate(classInstance, nextProps, nextState) {
 
   if (nextProps) {
     classInstance.props = nextProps;
-  }
-
-  if (classInstance.constructor.getDerivedStateFromProps) {
-    const partialState = classInstance.constructor.getDerivedStateFromProps(
-      nextProps,
-      classInstance.state
-    );
-    if (partialState) {
-      nextState = { ...nextState, ...partialState };
-    }
   }
 
   classInstance.state = nextState; // 不管组件是否刷新，组件的state一定要改变

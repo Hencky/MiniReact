@@ -143,7 +143,7 @@ class Counter2 extends React.Component {
   };
 
   handleClick2 = () => {
-    this.forceUpdate()
+    this.forceUpdate();
   };
 
   render() {
@@ -192,10 +192,10 @@ class ChildCounter extends React.Component {
     };
   }
 
-  // shouldComponentUpdate(nextProps, nextState) {
-  //   console.log('子组件 子组件是否更新');
-  //   return nextProps.count % 3 === 0;
-  // }
+  shouldComponentUpdate(nextProps, nextState) {
+    console.log('子组件 子组件是否更新', nextProps, nextState);
+    return nextProps.count % 3 === 0;
+  }
 
   // componentWillUpdate() {
   //   console.log('子组件  will update');
@@ -210,8 +210,8 @@ class ChildCounter extends React.Component {
   // }
 
   render() {
-    console.log('子组件 render');
-    return <div id={`child-${this.props.count}`}>{this.state.number}</div>;
+    console.log('子组件 render', this.props);
+    return <div>{this.state.number}</div>;
   }
 }
 
