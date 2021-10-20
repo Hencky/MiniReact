@@ -125,6 +125,8 @@ class Counter2 extends React.Component {
     this.state = { number: 1 };
   }
 
+  ref = React.createRef(null);
+
   // componentWillMount() {
   //   console.log('父组件 卸载');
   // }
@@ -133,8 +135,22 @@ class Counter2 extends React.Component {
   //   console.log('父组件 did mount');
   // }
 
-  shouldComponentUpdate(nextProps, nextState) {
-    console.log('父组件 shouldComponentUpdate', this.state, nextState);
+  componentDidUpdate(prevProps, prevState, number) {
+    console.log('number', number)
+  }
+
+  getSnapshotBeforeUpdate() {
+    console.log(this.ref)
+    return this.state.number + 100;
+  }
+
+  shouldComponentUpdate(nextProps, nextState, snapshot) {
+    console.log(
+      '父组件 shouldComponentUpdate',
+      this.state,
+      nextState,
+      snapshot
+    );
     return nextState.number % 2 === 0;
   }
 
@@ -149,7 +165,7 @@ class Counter2 extends React.Component {
   render() {
     console.log('父组件 render');
     return (
-      <div id={this.state.number}>
+      <div id={this.state.number} ref={this.ref}>
         <p>{this.state.number}</p>
         <div>
           {this.state.number === 4 ? null : (

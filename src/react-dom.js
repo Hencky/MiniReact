@@ -36,7 +36,7 @@ function render(vdom, parentDOM, nextDOM, oldDOM) {
  */
 export function createDOM(vdom) {
   // 如果不是数字 字符串，就是一个虚拟DOM对象
-  const { type, props } = vdom;
+  const { type, props, ref } = vdom;
   let dom;
 
   if (type === REACT_TEXT) {
@@ -67,6 +67,10 @@ export function createDOM(vdom) {
   // 把真实DOM作为一个dom属性放到虚拟dom，为以后更新做准备
   // 根据一个vdom创建出来一个真实dom之后，真实DOM挂载到vdom.dom上
   vdom.dom = dom;
+
+  if (ref) {
+    ref.current = dom;
+  }
 
   return dom;
 }

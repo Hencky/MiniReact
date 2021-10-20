@@ -58,10 +58,11 @@ class Updater {
     });
 
     if (this.classInstance.constructor.getDerivedStateFromProps) {
-      const partialState = this.classInstance.constructor.getDerivedStateFromProps(
-        this.nextProps,
-        this.classInstance.state
-      );
+      const partialState =
+        this.classInstance.constructor.getDerivedStateFromProps(
+          this.nextProps,
+          this.classInstance.state
+        );
       if (partialState) {
         state = { ...state, ...partialState };
       }
@@ -104,13 +105,16 @@ class Component {
     const newRenderVdom = this.render();
     const oldRenderVdom = this.oldRenderVdom;
 
+    const extraArgs =
+      this.getSnapshotBeforeUpdate && this.getSnapshotBeforeUpdate();
+
     // 深度比较新旧两个虚拟DOM
     compareTwoVdom(oldRenderVdom.dom.parentNode, oldRenderVdom, newRenderVdom);
 
     this.oldRenderVdom = newRenderVdom;
 
     if (this.componentDidUpdate) {
-      this.componentDidUpdate();
+      this.componentDidUpdate(this.props, this.state, extraArgs);
     }
   }
 
